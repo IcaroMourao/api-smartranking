@@ -7,6 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CriarJogadorDto } from './dtos/criar-jogador.dto';
+import { AtualizarJogadorDto } from './dtos/atualizar-jogador.dto';
 import { Jogador } from './interfaces/jogador.intarface';
 
 @Injectable()
@@ -21,7 +22,9 @@ export class JogadoresService {
     const jogadorCriado = new this.jogadorModel(criarJogadorDto);
 
     if (foundedPlayer) {
-      throw new BadRequestException(`Jogador com e-mail ${email} já cadastrado`);
+      throw new BadRequestException(
+        `Jogador com e-mail ${email} ou telefone ${phoneNumber} já cadastrado`,
+      );
     }
 
     try {
@@ -31,14 +34,21 @@ export class JogadoresService {
     }
   }
 
-  async updatePlayer(id: string, criarJogadorDto: CriarJogadorDto): Promise<Jogador> {
-    const foundedPlayer = await this.jogadorModel.findOne({ _id: id }).exec();
+  async updatePlayer(id: string, atualizarJogadorDto: AtualizarJogadorDto): Promise<Jogador> {
+    await this.findPlayer(id);
+    const { phoneNumber } = atualizarJogadorDto;
 
-    if (!foundedPlayer) {
-      throw new NotFoundException(`Jogador com o id ${id} não encontrado`);
+    if (phoneNumber) {
+      const foundedPlayer = await this.jogadorModel.findOne({ phoneNumber }).exec();
+
+      if (foundedPlayer) {
+        throw new BadRequestException(`Já existe um jogador com telefone ${phoneNumber}`);
+      }
     }
 
-    return await this.jogadorModel.findOneAndUpdate({ _id: id }, { $set: criarJogadorDto }).exec();
+    return await this.jogadorModel
+      .findOneAndUpdate({ _id: id }, { $set: atualizarJogadorDto })
+      .exec();
   }
 
   async getJogadores(): Promise<Jogador[]> {
@@ -46,6 +56,18 @@ export class JogadoresService {
   }
 
   async getJogadorById(id: string): Promise<Jogador> {
+    const foundedPlayer = await this.findPlayer(id);
+
+    return foundedPlayer;
+  }
+
+  async deletePlayer(id: string): Promise<any> {
+    await this.findPlayer(id);
+
+    return await this.jogadorModel.deleteOne({ id });
+  }
+
+  private async findPlayer(id): Promise<Jogador> {
     const foundedPlayer = await this.jogadorModel.findOne({ _id: id }).exec();
 
     if (!foundedPlayer) {
@@ -53,9 +75,5 @@ export class JogadoresService {
     }
 
     return foundedPlayer;
-  }
-
-  async deletePlayer(id: string): Promise<any> {
-    return await this.jogadorModel.deleteOne({ id });
   }
 }

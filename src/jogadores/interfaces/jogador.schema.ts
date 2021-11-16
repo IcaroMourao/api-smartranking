@@ -2,11 +2,11 @@ import { Schema } from 'mongoose';
 
 export const JogadorSchema = new Schema(
   {
-    phoneNumber: {
+    email: {
       type: String,
       unique: true,
     },
-    email: {
+    phoneNumber: {
       type: String,
       unique: true,
     },
