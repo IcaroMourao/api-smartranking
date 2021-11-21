@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -11,11 +12,14 @@ import { AssingCategoryDto } from './dtos/assing-category.dto';
 import { Categoria } from './interfaces/categoria.interface';
 import { AtualizarCategoriaDto } from './dtos/atualizar-categoria-dto';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
+import { Logger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class CategoriasService {
   constructor(
     @InjectModel('Categoria') private readonly categoriaModel: Model<Categoria>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly jogadoresService: JogadoresService,
   ) {}
 
@@ -40,7 +44,8 @@ export class CategoriasService {
     return await this.categoriaModel.find().populate('jogadores').exec();
   }
 
-  async getCategoryById(categoria): Promise<Categoria> {
+  async getCategoryById(categoria: string): Promise<Categoria> {
+    this.logger.debug('Finding one category...');
     const category = await this.categoriaModel.findOne({ categoria }).exec();
 
     if (!category) {

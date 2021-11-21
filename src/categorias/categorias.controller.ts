@@ -41,7 +41,7 @@ export class CategoriasController {
   @UsePipes(ValidationPipe)
   async assingCategoryToPlayer(
     @Param('categoria') categoria: string,
-    @Param('playerId', ValidationParameters) playerId: string,
+    @Param('playerId') playerId: string,
   ): Promise<any> {
     return await this.categoriasService.assingCategoryToPlayer({ categoria, playerId });
   }
